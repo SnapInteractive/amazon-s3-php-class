@@ -121,6 +121,15 @@ class S3
 	public static $useExceptions = false;
 
 	/**
+	 * The timeout in seconds
+	 *
+	 * @var int
+	 * @access public
+	 * @static
+	 */
+	public static $timeoutInSeconds = null;
+
+	/**
 	 * Time offset applied to time()
 	 * @access private
 	 * @static
@@ -304,6 +313,18 @@ class S3
 			$offset = $systime > $awstime ? -($systime - $awstime) : ($awstime - $systime);
 		}
 		self::$__timeOffset = $offset;
+	}
+
+
+	/**
+	 * Sets the timeout
+	 *
+	 * @param int $timeout
+	 * @return void
+	 */
+	public static function setTimeout($timeout)
+	{
+		self::$timeoutInSeconds = (int)$timeout;
 	}
 
 
@@ -2178,7 +2199,10 @@ final class S3Request
 		curl_setopt($curl, CURLOPT_WRITEFUNCTION, array(&$this, '__responseWriteCallback'));
 		curl_setopt($curl, CURLOPT_HEADERFUNCTION, array(&$this, '__responseHeaderCallback'));
 		curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($curl, CURLOPT_TIMEOUT, 1);
+		if (S3::$timeoutInSeconds > 0)
+		{
+			curl_setopt($curl, CURLOPT_TIMEOUT, S3::$timeoutInSeconds);
+		}
 
 		// Request types
 		switch ($this->verb)
